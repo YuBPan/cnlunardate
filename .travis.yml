@@ -1,0 +1,18 @@
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
+  - "3.8"
+  - "3.8-dev"
+  - "nightly"
+
+install:
+  - pip install pytest-cov
+  - pip install codecov
+
+script:
+  - python -m pytest test* --cov-report term-missing --cov=.
+
+after_script:
+  - codecov
