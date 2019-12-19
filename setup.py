@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="cnlunardate",
-    version="0.0.1",
+    version="0.0.2",
     author="Y.B. Pan",
     author_email="yb.pan@yahoo.com",
     description="A Chinese lunar date Python library",
