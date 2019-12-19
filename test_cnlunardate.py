@@ -3,8 +3,8 @@
 import unittest
 import pickle
 
-from .cnlunardate import cnlunardate
-from .cnlunardate import MIN_YEAR, MAX_YEAR
+from cnlunardate import cnlunardate
+from cnlunardate import MIN_YEAR, MAX_YEAR
 
 from datetime import timedelta
 
@@ -65,8 +65,8 @@ class TestCnlunardate(unittest.TestCase):
                    self.theclass.today()):
             # Verify dt -> string -> cnlunardate identity.
             s = repr(dt)
-            self.assertTrue(s.startswith("cnlunardate.cnlunardate."))
-            s = s[len("cnlunardate.cnlunardate."):]
+            self.assertTrue(s.startswith("cnlunardate."))
+            s = s[len("cnlunardate."):]
             dt2 = eval(s)
             self.assertEqual(dt, dt2)
 
@@ -447,9 +447,9 @@ class TestCnlunardate(unittest.TestCase):
 
     def test_compat_unpickle(self):
         tests = [
-            b"ccnlunardate.cnlunardate\ncnlunardate\n(S'\\x07\\xdf\\x0b\\x1b\\x00'\ntR.",
-            b"ccnlunardate.cnlunardate\ncnlunardate\n(U\x05\x07\xdf\x0b\x1b\x00tR.",
-            b"\x80\x02ccnlunardate.cnlunardate\ncnlunardate\nU\x05\x07\xdf\x0b\x1b\x00\x85R.",
+            b"ccnlunardate\ncnlunardate\n(S'\\x07\\xdf\\x0b\\x1b\\x00'\ntR.",
+            b"ccnlunardate\ncnlunardate\n(U\x05\x07\xdf\x0b\x1b\x00tR.",
+            b"\x80\x02ccnlunardate\ncnlunardate\nU\x05\x07\xdf\x0b\x1b\x00\x85R.",
         ]
         args = 2015, 11, 27
         expected = self.theclass(*args)
