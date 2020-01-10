@@ -1,0 +1,2 @@
+[run]
+omit = setup.py, test_cnlunardate.py
