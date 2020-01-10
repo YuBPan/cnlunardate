@@ -178,6 +178,58 @@ class TestCnlunardate(unittest.TestCase):
         self.assertRaises(ValueError, self.theclass, MIN_YEAR-1, 12, 30)
         self.assertRaises(ValueError, self.theclass, MAX_YEAR, 12, 2)
 
+    def test_bad_constructor_arguments_typeerror(self):
+        # non-expected arguments
+        self.assertRaises(TypeError, self.theclass, 2017.0, 1, 1)
+        self.assertRaises(TypeError, self.theclass, 2017, 1.0, 1)
+        self.assertRaises(TypeError, self.theclass, 2017, 1, 1.0)
+        self.assertRaises(TypeError, self.theclass, 2017, 1, 1, "non-bool type")
+        # int __index__
+        class IntIndex:
+            def __init__(self, i):
+                self.i = i
+            def __index__(self):
+                return self.i
+        self.theclass(IntIndex(2017), 1, 1)
+        self.theclass(2017, IntIndex(1), 1)
+        self.theclass(2017, 1, IntIndex(1))
+        # non-int __index__
+        class NonIntIndex:
+            def __index__(self):
+                return 1.0
+        arg = NonIntIndex()
+        self.assertRaises(TypeError, self.theclass, arg, 1, 1)
+        self.assertRaises(TypeError, self.theclass, 1, arg, 1)
+        self.assertRaises(TypeError, self.theclass, 1, 1, arg)
+        # int __int__
+        class IntInt:
+            def __init__(self, i):
+                self.i = i
+            def __int__(self):
+                return self.i
+        self.theclass(IntInt(2017), 1, 1)
+        self.theclass(2017, IntInt(1), 1)
+        self.theclass(2017, 1, IntInt(1))
+        # non-int __int__
+        class NonIntInt:
+            def __int__(self):
+                return 1.0
+        arg = NonIntInt()
+        self.assertRaises(TypeError, self.theclass, arg, 1, 1)
+        self.assertRaises(TypeError, self.theclass, 1, arg, 1)
+        self.assertRaises(TypeError, self.theclass, 1, 1, arg)
+        # bool __bool__
+        class BoolBool:
+            def __bool__(self):
+                return True
+        self.theclass(2017, 6, 1, BoolBool())
+        # non-bool __bool__
+        class NonBoolBool:
+            def __bool__(self):
+                return 1.0
+        arg = NonBoolBool()
+        self.assertRaises(TypeError, self.theclass, 2017, 6, 1, arg)
+
     def test_hash_equality(self):
         d = self.theclass(2017, 1, 1)
         # same thing
@@ -410,6 +462,19 @@ class TestCnlunardate(unittest.TestCase):
         self.assertEqual(big, justasbig)
         self.assertEqual(self.theclass.min + big, self.theclass.max)
         self.assertEqual(self.theclass.max - big, self.theclass.min)
+
+    def test_from_to_solardate(self):
+        from datetime import date
+
+        for y1, m1, d1, y2, m2, d2 in [ (1900, 1, 1, 1900, 1, 31),
+                                        (1945, 10, 8, 1945, 11, 12),
+                                        (2100, 12, 1, 2100, 12, 31)]:
+            d = self.theclass(y1, m1, d1)
+            solar = date(y2, m2, d2)
+            fromsolar = self.theclass.fromsolardate(solar)
+            self.assertEqual(d, fromsolar)
+            tosolar = self.theclass.tosolardate(d)
+            self.assertEqual(solar, tosolar)
 
     def test_timetuple(self):
         for i in range(7):
