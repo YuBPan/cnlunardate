@@ -4,7 +4,7 @@ See https://en.wikipedia.org/wiki/Chinese_calendar.
 """
 
 from datetime import date, timedelta
-
+from typing import ClassVar
 
 MIN_YEAR = 1900
 MAX_YEAR = 2100
@@ -22,6 +22,7 @@ _MAXORDINAL = 767009  # cnlunardate.max.toordinal()
 #   |         |          There is a leap month and it is June.
 #   |         12 bits for each lunar month with 30 days if 1, or 29 days if 0.
 #   If there is a leap month, then it has 30 days if 1, or 29 days if 0.
+# fmt: off
 _LUNAR_YEAR_DATA = \
     [0x04bd8, 0x04ae0, 0x0a570, 0x054d5, 0x0d260, 0x0d950, 0x16554, 0x056a0, 0x09ad0, 0x055d2,  # 1900-1909
      0x04ae0, 0x0a5b6, 0x0a4d0, 0x0d250, 0x1d255, 0x0b540, 0x0d6a0, 0x0ada2, 0x095b0, 0x14977,  # 1910-1919
@@ -72,6 +73,7 @@ _LUNAR_YEAR_FIRST_DAY_IN_SOLAR = \
      0x104036, 0x104249, 0x10443d, 0x104651, 0x104846, 0x104a3a, 0x104c4e, 0x104e43, 0x105038, 0x10524a,  # 2080-2089
      0x10543e, 0x105652, 0x105847, 0x105a3b, 0x105c4f, 0x105e45, 0x106039, 0x10624c, 0x106441, 0x106635,  # 2090-2099
      0x106849]   # 2100
+# fmt: on
 
 
 def _cmp(x, y):
@@ -89,8 +91,7 @@ def _return_int_if_valid(value):
         pass
     else:
         if not isinstance(value, int):
-            raise TypeError(
-                f"__index__ returned non-int (type {type(value).__name__})")
+            raise TypeError(f"__index__ returned non-int (type {type(value).__name__})")
         return value
     orig = value
     try:
@@ -99,15 +100,12 @@ def _return_int_if_valid(value):
         pass
     else:
         if not isinstance(value, int):
-            raise TypeError(
-                f"__int__ returned non-int (type {type(value).__name__})")
+            raise TypeError(f"__int__ returned non-int (type {type(value).__name__})")
         import warnings
-        warnings.warn(f"an integer is required (got type {type(orig).__name__})",
-                      DeprecationWarning,
-                      stacklevel=2)
+
+        warnings.warn(f"an integer is required (got type {type(orig).__name__})", DeprecationWarning, stacklevel=2)
         return value
-    raise TypeError(
-        f"an integer is required (got type {type(value).__name__})")
+    raise TypeError(f"an integer is required (got type {type(value).__name__})")
 
 
 def _return_bool_if_valid(value):
@@ -119,8 +117,7 @@ def _return_bool_if_valid(value):
         pass
     else:
         if not isinstance(value, bool):
-            raise TypeError(
-                f"__bool__ returned non-bool (type {type(value).__name__})")
+            raise TypeError(f"__bool__ returned non-bool (type {type(value).__name__})")
         return value
     raise TypeError(f"a bool is required (got type {type(value).__name__})")
 
@@ -175,9 +172,11 @@ def _check_date_fields(year, month, day, isLeapMonth):
 
 def _convert_lunar_first_day_to_solar_by_idx(idx):
     soalr_bits = _LUNAR_YEAR_FIRST_DAY_IN_SOLAR[idx]
-    return date(_get_bits_in_range_with_shift(soalr_bits, 15, 9),
-                _get_bits_in_range_with_shift(soalr_bits, 4, 5),
-                _get_bits_in_range_with_shift(soalr_bits, 5, 0))
+    return date(
+        _get_bits_in_range_with_shift(soalr_bits, 15, 9),
+        _get_bits_in_range_with_shift(soalr_bits, 4, 5),
+        _get_bits_in_range_with_shift(soalr_bits, 5, 0),
+    )
 
 
 def _convert_lunar_year_to_months_by_idx(idx):
@@ -187,11 +186,12 @@ def _convert_lunar_year_to_months_by_idx(idx):
     leap_month = _leap_month_in_bits(lunar_bits)
 
     NUM_MONTH_BITS = 12
-    months = [(NUM_MONTH_BITS - shift, 30 if ((twelve_months_bits >> shift) & 1)
-               else 29, False) for shift in range(NUM_MONTH_BITS - 1, -1, -1)]
+    months = [
+        (NUM_MONTH_BITS - shift, 30 if ((twelve_months_bits >> shift) & 1) else 29, False)
+        for shift in range(NUM_MONTH_BITS - 1, -1, -1)
+    ]
     if leap_month:
-        months.insert(
-            leap_month, (leap_month, 30 if if_leap_month_has_30_days else 29, True))
+        months.insert(leap_month, (leap_month, 30 if if_leap_month_has_30_days else 29, True))
     return months
 
 
@@ -215,12 +215,15 @@ def _solar2ymdl(s):
     return solar_first_day.year, lunar_months[i][0], days_diff, lunar_months[i][2]
 
 
-def _ymdl2solar(y, m, d, l):
+def _ymdl2solar(y, m, d, is_leap_month):
     idx = y - MIN_YEAR
     solar_first_day = _convert_lunar_first_day_to_solar_by_idx(idx)
     lunar_months = _convert_lunar_year_to_months_by_idx(idx)
-    days_diff = sum(month[1] for month in lunar_months if (month[0] < m) or (
-        month[0] == m and month[2] == False and l == True)) + d - 1
+    days_diff = (
+        sum(month[1] for month in lunar_months if (month[0] < m) or (month[0] == m and not month[2] and is_leap_month))
+        + d
+        - 1
+    )
     solar = solar_first_day + timedelta(days=days_diff)
     return solar
 
@@ -256,7 +259,12 @@ class cnlunardate:
     Properties (read-only):
     year, month, day, isLeapMonth
     """
-    __slots__ = '_year', '_month', '_day', '_isLeapMonth', '_hashcode'
+
+    __slots__ = "_year", "_month", "_day", "_isLeapMonth", "_hashcode"
+
+    min: ClassVar["cnlunardate"]
+    max: ClassVar["cnlunardate"]
+    resolution: ClassVar[timedelta]
 
     def __new__(cls, year, month=None, day=None, isLeapMonth=False):
         """Constructor
@@ -266,25 +274,23 @@ class cnlunardate:
         year, month, day (required, base 1)
         isLeapMonth (default to false)
         """
-        if (month is None and
-            isinstance(year, (bytes, str)) and len(year) == 5 and
-                1 <= ord(year[2:3]) <= 12):
+        if month is None and isinstance(year, (bytes, str)) and len(year) == 5 and 1 <= ord(year[2:3]) <= 12:
             # Pickle support
             if isinstance(year, str):
                 try:
-                    year = year.encode('latin1')
-                except UnicodeEncodeError:
+                    year = year.encode("latin1")
+                except UnicodeEncodeError as err:
                     # More informative error message.
                     raise ValueError(
                         "Failed to encode latin1 string when unpickling "
                         "a cnlunardate object. "
-                        "pickle.load(data, encoding='latin1') is assumed.")
+                        "pickle.load(data, encoding='latin1') is assumed."
+                    ) from err
             self = object.__new__(cls)
             self.__setstate(year)
             self._hashcode = -1
             return self
-        year, month, day, isLeapMonth = _check_date_fields(
-            year, month, day, isLeapMonth)
+        year, month, day, isLeapMonth = _check_date_fields(year, month, day, isLeapMonth)
         self = object.__new__(cls)
         self._year = year
         self._month = month
@@ -319,9 +325,7 @@ class cnlunardate:
 
     def __repr__(self):
         """Convert to formal string, for repr()."""
-        return f"{self.__class__.__module__}."\
-            f"{self.__class__.__qualname__}"\
-            f"({self._year}, {self._month}, {self._day}, {self._isLeapMonth})"
+        return f"cnlunardate.cnlunardate({self._year}, {self._month}, {self._day}, {self._isLeapMonth})"
 
     __str__ = __repr__
 
@@ -378,9 +382,9 @@ class cnlunardate:
 
     def _cmp(self, other):
         assert isinstance(other, cnlunardate)
-        y, m, d, l = self._year, self._month, self._day, self._isLeapMonth
+        y, m, d, is_leap_month = self._year, self._month, self._day, self._isLeapMonth
         y2, m2, d2, l2 = other._year, other._month, other._day, other._isLeapMonth
-        return _cmp((y, m, d, l), (y2, m2, d2, l2))
+        return _cmp((y, m, d, is_leap_month), (y2, m2, d2, l2))
 
     def __eq__(self, other):
         if isinstance(other, cnlunardate):
@@ -453,7 +457,7 @@ class cnlunardate:
 
     def _getstate(self):
         yhi, ylo = divmod(self._year, 256)
-        return bytes([yhi, ylo, self._month, self._day, self._isLeapMonth]),
+        return (bytes([yhi, ylo, self._month, self._day, self._isLeapMonth]),)
 
     def __setstate(self, string):
         yhi, ylo, self._month, self._day, self._isLeapMonth = string

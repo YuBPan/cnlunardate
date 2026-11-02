@@ -1,21 +1,17 @@
 """Test cnlunardate."""
 
-import unittest
 import pickle
-
-from cnlunardate import cnlunardate
-from cnlunardate import MIN_YEAR, MAX_YEAR
-
+import unittest
 from datetime import timedelta
 
+from cnlunardate import MAX_YEAR, MIN_YEAR, cnlunardate
+
 pickle_loads = {pickle.loads, pickle._loads}
-pickle_choices = [(pickle, pickle, proto)
-                  for proto in range(pickle.HIGHEST_PROTOCOL + 1)]
+pickle_choices = [(pickle, pickle, proto) for proto in range(pickle.HIGHEST_PROTOCOL + 1)]
 assert len(pickle_choices) == pickle.HIGHEST_PROTOCOL + 1
 
 
 class TestCnlunardateOnly(unittest.TestCase):
-
     def test_delta_non_days_ignored(self):
         dt = cnlunardate(2000, 1, 2)
         delta = timedelta(days=1)
@@ -50,7 +46,6 @@ class SubclassDate(cnlunardate):
 
 
 class TestCnlunardate(unittest.TestCase):
-
     theclass = cnlunardate
 
     def test_basic_attributes(self):
@@ -61,13 +56,15 @@ class TestCnlunardate(unittest.TestCase):
         self.assertEqual(dt.isLeapMonth, True)
 
     def test_roundtrip(self):
-        for dt in (self.theclass(1900, 1, 1),
-                   self.theclass.today()):
+        for dt in (self.theclass(1900, 1, 1), self.theclass.today()):
             # Verify dt -> string -> cnlunardate identity.
             s = repr(dt)
             self.assertTrue(s.startswith("cnlunardate."))
-            s = s[len("cnlunardate."):]
+            print("s", s)
+            s = s[len("cnlunardate.") :]
+            print("s", s)
             dt2 = eval(s)
+            print("dt2", dt2)
             self.assertEqual(dt, dt2)
 
             # Verify identity via reconstructing from pieces.
@@ -76,9 +73,11 @@ class TestCnlunardate(unittest.TestCase):
 
     def test_ordinal_conversions(self):
         # Check some fixed values.
-        for y, m, d, n in [(1900, 1, 1, 693626),  # 1900, 1, 31
-                           (1945, 10, 8, 710347),  # 1945, 11, 12
-                           (2100, 12, 1, 767009)]:  # 2100, 12, 31
+        for y, m, d, n in [
+            (1900, 1, 1, 693626),  # 1900, 1, 31
+            (1945, 10, 8, 710347),  # 1945, 11, 12
+            (2100, 12, 1, 767009),
+        ]:  # 2100, 12, 31
             d = self.theclass(y, m, d)
             self.assertEqual(n, d.toordinal())
             fromord = self.theclass.fromordinal(n)
@@ -86,7 +85,7 @@ class TestCnlunardate(unittest.TestCase):
 
         # Check first and last days of year spottily across the whole
         # range of years supported.
-        for year in range(MIN_YEAR+1, MAX_YEAR+1, 7):
+        for year in range(MIN_YEAR + 1, MAX_YEAR + 1, 7):
             # Verify (year, 1, 1) -> ordinal -> y, m, d, l is identity.
             d = self.theclass(year, 1, 1)
             n = d.toordinal()
@@ -94,27 +93,28 @@ class TestCnlunardate(unittest.TestCase):
             self.assertEqual(d, d2)
             # Verify that moving back a day gets to the end of year-1.
             if year > 1:
-                d = self.theclass.fromordinal(n-1)
+                d = self.theclass.fromordinal(n - 1)
                 try:
-                    d2 = self.theclass(year-1, 12, 30)
+                    d2 = self.theclass(year - 1, 12, 30)
                 except ValueError:
-                    d2 = self.theclass(year-1, 12, 29)
+                    d2 = self.theclass(year - 1, 12, 29)
                 self.assertEqual(d, d2)
-                self.assertEqual(d2.toordinal(), n-1)
+                self.assertEqual(d2.toordinal(), n - 1)
 
         # Test every day in a year with and without leap month.
-        for year, dim, hasLeapMonth, leapMonth, leapMonthDays in \
-                (2017, [29, 30, 29, 30, 29, 29, 29, 30, 29, 30, 30, 30], True, 6, 30), \
-                (2018, [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], False, -1, -1):
+        for year, dim, hasLeapMonth, leapMonth, leapMonthDays in (
+            (2017, [29, 30, 29, 30, 29, 29, 29, 30, 29, 30, 30, 30], True, 6, 30),
+            (2018, [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], False, -1, -1),
+        ):
             n = self.theclass(year, 1, 1).toordinal()
-            for month, maxday in zip(range(1, len(dim)+1), dim):
-                for day in range(1, maxday+1):
+            for month, maxday in zip(range(1, len(dim) + 1), dim, strict=False):
+                for day in range(1, maxday + 1):
                     d = self.theclass(year, month, day)
                     self.assertEqual(d.toordinal(), n)
                     self.assertEqual(d, self.theclass.fromordinal(n))
                     n += 1
                 if hasLeapMonth and month == leapMonth:
-                    for day in range(1, leapMonthDays+1):
+                    for day in range(1, leapMonthDays + 1):
                         d = self.theclass(year, month, day, True)
                         self.assertEqual(d.toordinal(), n)
                         self.assertEqual(d, self.theclass.fromordinal(n))
@@ -153,8 +153,8 @@ class TestCnlunardate(unittest.TestCase):
         # bad years
         self.theclass(MIN_YEAR, 1, 1)
         self.theclass(MAX_YEAR, 1, 1)
-        self.assertRaises(ValueError, self.theclass, MIN_YEAR-1, 1, 1)
-        self.assertRaises(ValueError, self.theclass, MAX_YEAR+1, 1, 1)
+        self.assertRaises(ValueError, self.theclass, MIN_YEAR - 1, 1, 1)
+        self.assertRaises(ValueError, self.theclass, MAX_YEAR + 1, 1, 1)
         # bad months
         self.theclass(2017, 1, 1)
         self.theclass(2017, 12, 1)
@@ -175,7 +175,7 @@ class TestCnlunardate(unittest.TestCase):
         # min and max
         self.theclass(MIN_YEAR, 1, 1)
         self.theclass(MAX_YEAR, 12, 1)
-        self.assertRaises(ValueError, self.theclass, MIN_YEAR-1, 12, 30)
+        self.assertRaises(ValueError, self.theclass, MIN_YEAR - 1, 12, 30)
         self.assertRaises(ValueError, self.theclass, MAX_YEAR, 12, 2)
 
     def test_bad_constructor_arguments_typeerror(self):
@@ -184,49 +184,63 @@ class TestCnlunardate(unittest.TestCase):
         self.assertRaises(TypeError, self.theclass, 2017, 1.0, 1)
         self.assertRaises(TypeError, self.theclass, 2017, 1, 1.0)
         self.assertRaises(TypeError, self.theclass, 2017, 1, 1, "non-bool type")
+
         # int __index__
         class IntIndex:
             def __init__(self, i):
                 self.i = i
+
             def __index__(self):
                 return self.i
+
         self.theclass(IntIndex(2017), 1, 1)
         self.theclass(2017, IntIndex(1), 1)
         self.theclass(2017, 1, IntIndex(1))
+
         # non-int __index__
         class NonIntIndex:
             def __index__(self):
                 return 1.0
+
         arg = NonIntIndex()
         self.assertRaises(TypeError, self.theclass, arg, 1, 1)
         self.assertRaises(TypeError, self.theclass, 1, arg, 1)
         self.assertRaises(TypeError, self.theclass, 1, 1, arg)
+
         # int __int__
         class IntInt:
             def __init__(self, i):
                 self.i = i
+
             def __int__(self):
                 return self.i
+
         self.theclass(IntInt(2017), 1, 1)
         self.theclass(2017, IntInt(1), 1)
         self.theclass(2017, 1, IntInt(1))
+
         # non-int __int__
         class NonIntInt:
             def __int__(self):
                 return 1.0
+
         arg = NonIntInt()
         self.assertRaises(TypeError, self.theclass, arg, 1, 1)
         self.assertRaises(TypeError, self.theclass, 1, arg, 1)
         self.assertRaises(TypeError, self.theclass, 1, 1, arg)
+
         # bool __bool__
         class BoolBool:
             def __bool__(self):
                 return True
+
         self.theclass(2017, 6, 1, BoolBool())
+
         # non-bool __bool__
         class NonBoolBool:
             def __bool__(self):
                 return 1.0
+
         arg = NonBoolBool()
         self.assertRaises(TypeError, self.theclass, 2017, 6, 1, arg)
 
@@ -256,15 +270,14 @@ class TestCnlunardate(unittest.TestCase):
         self.assertEqual(dic[e], 2)
 
         # different on isLeapMonth
-        self.assertNotEqual(hash(self.theclass(2017, 6, 29)),
-                            hash(self.theclass(2017, 6, 29, True)))
+        self.assertNotEqual(hash(self.theclass(2017, 6, 29)), hash(self.theclass(2017, 6, 29, True)))
 
     def test_computations(self):
         a = self.theclass(2002, 1, 30)
         b = self.theclass(1956, 1, 29)
         c = self.theclass(2001, 2, 1)
 
-        diff = a-b
+        diff = a - b
         self.assertEqual(diff.days, 16803)
         self.assertEqual(diff.seconds, 0)
         self.assertEqual(diff.microseconds, 0)
@@ -278,8 +291,8 @@ class TestCnlunardate(unittest.TestCase):
         self.assertEqual(-day + a, self.theclass(2002, 3, 1))
         self.assertEqual(a + week, self.theclass(2002, 3, 9))
         self.assertEqual(a - week, self.theclass(2002, 2, 25))
-        self.assertEqual(a + 52*week, self.theclass(2003, 3, 12))
-        self.assertEqual(a - 52*week, self.theclass(2001, 3, 22))
+        self.assertEqual(a + 52 * week, self.theclass(2003, 3, 12))
+        self.assertEqual(a - 52 * week, self.theclass(2001, 3, 22))
         self.assertEqual((a + week) - a, week)
         self.assertEqual((a + day) - a, day)
         self.assertEqual((a - week) - a, -week)
@@ -297,8 +310,8 @@ class TestCnlunardate(unittest.TestCase):
         self.assertEqual(-day + a, self.theclass(2017, 6, 1, True))
         self.assertEqual(a + week, self.theclass(2017, 6, 9, True))
         self.assertEqual(a - week, self.theclass(2017, 6, 24))
-        self.assertEqual(a + 52*week, self.theclass(2018, 6, 11))
-        self.assertEqual(a - 52*week, self.theclass(2016, 6, 22))
+        self.assertEqual(a + 52 * week, self.theclass(2018, 6, 11))
+        self.assertEqual(a - 52 * week, self.theclass(2016, 6, 22))
         self.assertEqual((a + week) - a, week)
         self.assertEqual((a + day) - a, day)
         self.assertEqual((a - week) - a, -week)
@@ -311,10 +324,10 @@ class TestCnlunardate(unittest.TestCase):
 
         # Add/sub ints or floats should be illegal
         for i in 1, 1.0:
-            self.assertRaises(TypeError, lambda: a+i)
-            self.assertRaises(TypeError, lambda: a-i)
-            self.assertRaises(TypeError, lambda: i+a)
-            self.assertRaises(TypeError, lambda: i-a)
+            self.assertRaises(TypeError, lambda i=i: a + i)
+            self.assertRaises(TypeError, lambda i=i: a - i)
+            self.assertRaises(TypeError, lambda i=i: i + a)
+            self.assertRaises(TypeError, lambda i=i: i - a)
 
         # delta - cnlunardate is senseless.
         self.assertRaises(TypeError, lambda: day - a)
@@ -359,15 +372,14 @@ class TestCnlunardate(unittest.TestCase):
         # exempt such platforms (provided they return reasonable
         # results!).
         for insane in -1e200, 1e200:
-            self.assertRaises(OverflowError, self.theclass.fromtimestamp,
-                              insane)
+            self.assertRaises(OverflowError, self.theclass.fromtimestamp, insane)
 
     def test_today(self):
         import time
 
         # We claim that today() is like fromtimestamp(time.time()), so
         # prove it.
-        for dummy in range(3):
+        for _dummy in range(3):
             today = self.theclass.today()
             ts = time.time()
             todayagain = self.theclass.fromtimestamp(ts)
@@ -388,37 +400,35 @@ class TestCnlunardate(unittest.TestCase):
         # It worked or it didn't.  If it didn't, assume it's reason #2, and
         # let the test pass if they're within half a second of each other.
         if today != todayagain:
-            self.assertAlmostEqual(todayagain, today,
-                                   delta=timedelta(seconds=0.5))
+            self.assertAlmostEqual(todayagain, today, delta=timedelta(seconds=0.5))
 
     def test_weekday(self):
         for i in range(7):
             # 2017, 6, 2 is a Monday
-            self.assertEqual(self.theclass(2017, 6, 2+i, True).weekday(), i)
-            self.assertEqual(self.theclass(
-                2017, 6, 2+i, True).isoweekday(), i+1)
+            self.assertEqual(self.theclass(2017, 6, 2 + i, True).weekday(), i)
+            self.assertEqual(self.theclass(2017, 6, 2 + i, True).isoweekday(), i + 1)
             # 2017, 1, 3 is a Monday
-            self.assertEqual(self.theclass(2017, 1, 3+i).weekday(), i)
-            self.assertEqual(self.theclass(2017, 1, 3+i).isoweekday(), i+1)
+            self.assertEqual(self.theclass(2017, 1, 3 + i).weekday(), i)
+            self.assertEqual(self.theclass(2017, 1, 3 + i).isoweekday(), i + 1)
 
     def test_isocalendar(self):
         # Check examples from
         # http://www.phys.uu.nl/~vgent/calendar/isocalendar.htm
         for i in range(7):
-            d = self.theclass(2003, 11, 22+i)
-            self.assertEqual(d.isocalendar(), (2003, 51, i+1))
+            d = self.theclass(2003, 11, 22 + i)
+            self.assertEqual(d.isocalendar(), (2003, 51, i + 1))
             d = self.theclass(2003, 11, 29) + timedelta(i)
-            self.assertEqual(d.isocalendar(), (2003, 52, i+1))
-            d = self.theclass(2003, 12, 7+i)
-            self.assertEqual(d.isocalendar(), (2004, 1, i+1))
-            d = self.theclass(2003, 12, 14+i)
-            self.assertEqual(d.isocalendar(), (2004, 2, i+1))
-            d = self.theclass(2009, 11, 6+i)
-            self.assertEqual(d.isocalendar(), (2009, 52, i+1))
-            d = self.theclass(2009, 11, 13+i)
-            self.assertEqual(d.isocalendar(), (2009, 53, i+1))
-            d = self.theclass(2009, 11, 20+i)
-            self.assertEqual(d.isocalendar(), (2010, 1, i+1))
+            self.assertEqual(d.isocalendar(), (2003, 52, i + 1))
+            d = self.theclass(2003, 12, 7 + i)
+            self.assertEqual(d.isocalendar(), (2004, 1, i + 1))
+            d = self.theclass(2003, 12, 14 + i)
+            self.assertEqual(d.isocalendar(), (2004, 2, i + 1))
+            d = self.theclass(2009, 11, 6 + i)
+            self.assertEqual(d.isocalendar(), (2009, 52, i + 1))
+            d = self.theclass(2009, 11, 13 + i)
+            self.assertEqual(d.isocalendar(), (2009, 53, i + 1))
+            d = self.theclass(2009, 11, 20 + i)
+            self.assertEqual(d.isocalendar(), (2010, 1, i + 1))
 
     def test_iso_long_years(self):
         from datetime import date
@@ -441,10 +451,10 @@ class TestCnlunardate(unittest.TestCase):
         iso_long_years = sorted(map(int, ISO_LONG_YEARS_TABLE.split()))
         L = []
         for i in range(101):
-            d = self.theclass.fromsolardate(date(MIN_YEAR+i, 12, 31))
+            d = self.theclass.fromsolardate(date(MIN_YEAR + i, 12, 31))
             if d.isocalendar()[1] == 53:
                 L.append(i + MIN_YEAR - 1600)
-            d = self.theclass.fromsolardate(date(2000+i, 12, 31))
+            d = self.theclass.fromsolardate(date(2000 + i, 12, 31))
             if d.isocalendar()[1] == 53:
                 L.append(i)
         self.assertEqual(sorted(L), iso_long_years)
@@ -457,7 +467,7 @@ class TestCnlunardate(unittest.TestCase):
 
     def test_extreme_timedelta(self):
         big = self.theclass.max - self.theclass.min
-        n = (big.days*24*3600 + big.seconds)*1000000 + big.microseconds
+        n = (big.days * 24 * 3600 + big.seconds) * 1000000 + big.microseconds
         justasbig = timedelta(0, 0, n)
         self.assertEqual(big, justasbig)
         self.assertEqual(self.theclass.min + big, self.theclass.max)
@@ -466,9 +476,11 @@ class TestCnlunardate(unittest.TestCase):
     def test_from_to_solardate(self):
         from datetime import date
 
-        for y1, m1, d1, y2, m2, d2 in [ (1900, 1, 1, 1900, 1, 31),
-                                        (1945, 10, 8, 1945, 11, 12),
-                                        (2100, 12, 1, 2100, 12, 31)]:
+        for y1, m1, d1, y2, m2, d2 in [
+            (1900, 1, 1, 1900, 1, 31),
+            (1945, 10, 8, 1945, 11, 12),
+            (2100, 12, 1, 2100, 12, 31),
+        ]:
             d = self.theclass(y1, m1, d1)
             solar = date(y2, m2, d2)
             fromsolar = self.theclass.fromsolardate(solar)
@@ -479,26 +491,26 @@ class TestCnlunardate(unittest.TestCase):
     def test_timetuple(self):
         for i in range(7):
             # January 2, 1956 is a Monday (0)
-            d = self.theclass(1955, 11, 20+i)
+            d = self.theclass(1955, 11, 20 + i)
             t = d.timetuple()
-            self.assertEqual(t, (1956, 1, 2+i, 0, 0, 0, i, 2+i, -1))
+            self.assertEqual(t, (1956, 1, 2 + i, 0, 0, 0, i, 2 + i, -1))
             # February 1, 1956 is a Wednesday (2)
-            d = self.theclass(1955, 12, 20+i)
+            d = self.theclass(1955, 12, 20 + i)
             t = d.timetuple()
-            self.assertEqual(t, (1956, 2, 1+i, 0, 0, 0, (2+i) % 7, 32+i, -1))
+            self.assertEqual(t, (1956, 2, 1 + i, 0, 0, 0, (2 + i) % 7, 32 + i, -1))
             # March 1, 1956 is a Thursday (3), and is the 31+29+1 = 61st day
             # of the year.
-            d = self.theclass(1956, 1, 19+i)
+            d = self.theclass(1956, 1, 19 + i)
             t = d.timetuple()
-            self.assertEqual(t, (1956, 3, 1+i, 0, 0, 0, (3+i) % 7, 61+i, -1))
+            self.assertEqual(t, (1956, 3, 1 + i, 0, 0, 0, (3 + i) % 7, 61 + i, -1))
             self.assertEqual(t.tm_year, 1956)
             self.assertEqual(t.tm_mon, 3)
-            self.assertEqual(t.tm_mday, 1+i)
+            self.assertEqual(t.tm_mday, 1 + i)
             self.assertEqual(t.tm_hour, 0)
             self.assertEqual(t.tm_min, 0)
             self.assertEqual(t.tm_sec, 0)
-            self.assertEqual(t.tm_wday, (3+i) % 7)
-            self.assertEqual(t.tm_yday, 61+i)
+            self.assertEqual(t.tm_wday, (3 + i) % 7)
+            self.assertEqual(t.tm_yday, 61 + i)
             self.assertEqual(t.tm_isdst, -1)
 
     def test_pickling(self):
@@ -534,7 +546,7 @@ class TestCnlunardate(unittest.TestCase):
         self.assertFalse(t1 > t2)
 
         for args in (2018, 6, 3), (2017, 6, 4, True), (2017, 7, 4), (2017, 6, 5):
-            t2 = self.theclass(*args)   # this is larger than t1
+            t2 = self.theclass(*args)  # this is larger than t1
             self.assertTrue(t1 < t2)
             self.assertTrue(t2 > t1)
             self.assertTrue(t1 <= t2)
@@ -554,13 +566,13 @@ class TestCnlunardate(unittest.TestCase):
             self.assertEqual(badarg == t1, False)
             self.assertEqual(badarg != t1, True)
 
-            self.assertRaises(TypeError, lambda: t1 < badarg)
-            self.assertRaises(TypeError, lambda: t1 > badarg)
-            self.assertRaises(TypeError, lambda: t1 >= badarg)
-            self.assertRaises(TypeError, lambda: badarg <= t1)
-            self.assertRaises(TypeError, lambda: badarg < t1)
-            self.assertRaises(TypeError, lambda: badarg > t1)
-            self.assertRaises(TypeError, lambda: badarg >= t1)
+            self.assertRaises(TypeError, lambda badarg=badarg: t1 < badarg)
+            self.assertRaises(TypeError, lambda badarg=badarg: t1 > badarg)
+            self.assertRaises(TypeError, lambda badarg=badarg: t1 >= badarg)
+            self.assertRaises(TypeError, lambda badarg=badarg: badarg <= t1)
+            self.assertRaises(TypeError, lambda badarg=badarg: badarg < t1)
+            self.assertRaises(TypeError, lambda badarg=badarg: badarg > t1)
+            self.assertRaises(TypeError, lambda badarg=badarg: badarg >= t1)
 
     def test_mixed_compare(self):
         our = self.theclass(2000, 4, 5)
@@ -600,10 +612,7 @@ class TestCnlunardate(unittest.TestCase):
         self.assertEqual(base, base.replace())
 
         i = 0
-        for name, newval in (("year", 2018),
-                             ("month", 7),
-                             ("day", 6),
-                             ("isLeapMonth", True)):
+        for name, newval in (("year", 2018), ("month", 7), ("day", 6), ("isLeapMonth", True)):
             newargs = args[:]
             newargs[i] = newval
             expected = cls(*newargs)
@@ -646,12 +655,12 @@ class TestCnlunardate(unittest.TestCase):
 
         self.assertEqual(dt2.__class__, C)
         self.assertEqual(dt2.theAnswer, 42)
-        self.assertEqual(dt2.extra,  7)
+        self.assertEqual(dt2.extra, 7)
         self.assertEqual(dt1.toordinal(), dt2.toordinal())
         self.assertEqual(dt2.newmeth(-7), dt1.year + dt1.month - 7)
 
     def test_subclass_alternate_constructors(self):
-        from datetime import datetime, date, time
+        from datetime import date, datetime, time
 
         # Test that alternate constructors call the constructor
         class DateSubclass(self.theclass):
@@ -662,7 +671,7 @@ class TestCnlunardate(unittest.TestCase):
 
         args = (2003, 3, 13)
         d_date = date(2003, 4, 14)  # Equivalent solar date
-        d_ord = 731319              # Equivalent ordinal
+        d_ord = 731319  # Equivalent ordinal
 
         base_d = DateSubclass(*args)
         self.assertIsInstance(base_d, DateSubclass)
@@ -680,8 +689,7 @@ class TestCnlunardate(unittest.TestCase):
         for constr_name, constr_args in test_cases:
             for base_obj in (DateSubclass, base_d):
                 # Test both the classmethod and method
-                with self.subTest(base_obj_type=type(base_obj),
-                                  constr_name=constr_name):
+                with self.subTest(base_obj_type=type(base_obj), constr_name=constr_name):
                     constr = getattr(base_obj, constr_name)
 
                     dt = constr(*constr_args)
