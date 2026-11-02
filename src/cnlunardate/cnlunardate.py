@@ -4,6 +4,7 @@ See https://en.wikipedia.org/wiki/Chinese_calendar.
 """
 
 from datetime import date, timedelta
+from typing import ClassVar
 
 MIN_YEAR = 1900
 MAX_YEAR = 2100
@@ -260,6 +261,10 @@ class cnlunardate:
     """
 
     __slots__ = "_year", "_month", "_day", "_isLeapMonth", "_hashcode"
+
+    min: ClassVar["cnlunardate"]
+    max: ClassVar["cnlunardate"]
+    resolution: ClassVar[timedelta]
 
     def __new__(cls, year, month=None, day=None, isLeapMonth=False):
         """Constructor
