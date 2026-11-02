@@ -1,12 +1,24 @@
-# A Chinese lunar date Python library 中国农历日期 Python 库
+# A Chinese lunar date library for Python 中国农历日期 Python 库
 
-[![Build Status](https://travis-ci.org/YuBPan/cnlunardate.svg?branch=master)](https://travis-ci.org/YuBPan/cnlunardate)
-[![codecov](https://codecov.io/gh/YuBPan/cnlunardate/branch/master/graph/badge.svg)](https://codecov.io/gh/YuBPan/cnlunardate)
+cnlunardate provides a date type for the Chinese lunar calendar, with functionality similar to Python's built-in datetime.date.
+
+## Features
+
+- Construct and manipulate Chinese lunar dates.
+- Convert between Chinese lunar dates and Gregorian dates.
+- Support leap months.
+- Date arithmetic, comparisons, and ordinal conversions.
+- Immutable date objects.
+- Pickling support.
+
+## Requirements
+
+Python 3.11 or later.
 
 ## Installation
 
-```console
-$ pip install cnlunardate
+```sh
+$ python -m pip install cnlunardate
 ```
 
 ## Usage
@@ -108,12 +120,33 @@ OverflowError: result out of range
 TypeError: an integer is required (got type str)
 ```
 
-## Testing
+## Development
 
-```console
-$ pytest
+Clone the repository:
 
+```sh
+git clone https://github.com/YuBPan/cnlunardate.git
+cd cnlunardate
 ```
+
+Use a virtual environment, install the package and development dependencies:
+
+```sh
+python -m venv path/to/venv
+source path/to/venv/bin/activate
+python -m pip install -e ".[dev]"
+```
+
+## Run tests
+
+```sh
+python -m pytest
+```
+
+## Lint and format checks
+
+python -m ruff check .
+python -m ruff format --check .
 
 ## License
 
@@ -122,4 +155,4 @@ MIT
 ## Reference
 
 - [Chinese calendar Wiki](https://en.wikipedia.org/wiki/Chinese_calendar)
-- [公曆與農曆對照表 - 香港天文台](https://www.hko.gov.hk/tc/gts/time/conversion.htm)
+- [Hong Kong Observatory – Gregorian-Lunar Calendar Conversion](https://www.hko.gov.hk/tc/gts/time/conversion.htm)

@@ -53,9 +53,6 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-cnlunardate = ["py.typed"]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
