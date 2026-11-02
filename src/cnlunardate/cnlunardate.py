@@ -321,8 +321,7 @@ class cnlunardate:
     def __repr__(self):
         """Convert to formal string, for repr()."""
         return (
-            f"{self.__class__.__module__}."
-            f"{self.__class__.__qualname__}"
+            f"cnlunardate.cnlunardate"
             f"({self._year}, {self._month}, {self._day}, {self._isLeapMonth})"
         )
 
