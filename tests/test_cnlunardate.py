@@ -4,7 +4,7 @@ import pickle
 import unittest
 from datetime import timedelta
 
-from cnlunardate import MAX_YEAR, MIN_YEAR, cnlunardate
+from cnlunardate import cnlunardate, MAX_YEAR, MIN_YEAR
 
 pickle_loads = {pickle.loads, pickle._loads}
 pickle_choices = [(pickle, pickle, proto) for proto in range(pickle.HIGHEST_PROTOCOL + 1)]
