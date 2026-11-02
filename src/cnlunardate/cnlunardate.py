@@ -5,7 +5,6 @@ See https://en.wikipedia.org/wiki/Chinese_calendar.
 
 from datetime import date, timedelta
 
-
 MIN_YEAR = 1900
 MAX_YEAR = 2100
 MIN_DATE = date(1900, 1, 31)
@@ -215,12 +214,12 @@ def _solar2ymdl(s):
     return solar_first_day.year, lunar_months[i][0], days_diff, lunar_months[i][2]
 
 
-def _ymdl2solar(y, m, d, l):
+def _ymdl2solar(y, m, d, is_leap_month):
     idx = y - MIN_YEAR
     solar_first_day = _convert_lunar_first_day_to_solar_by_idx(idx)
     lunar_months = _convert_lunar_year_to_months_by_idx(idx)
     days_diff = sum(month[1] for month in lunar_months if (month[0] < m) or (
-        month[0] == m and month[2] == False and l == True)) + d - 1
+        month[0] == m and not month[2] and is_leap_month)) + d - 1
     solar = solar_first_day + timedelta(days=days_diff)
     return solar
 
@@ -273,12 +272,12 @@ class cnlunardate:
             if isinstance(year, str):
                 try:
                     year = year.encode('latin1')
-                except UnicodeEncodeError:
+                except UnicodeEncodeError as err:
                     # More informative error message.
                     raise ValueError(
                         "Failed to encode latin1 string when unpickling "
                         "a cnlunardate object. "
-                        "pickle.load(data, encoding='latin1') is assumed.")
+                        "pickle.load(data, encoding='latin1') is assumed.") from err
             self = object.__new__(cls)
             self.__setstate(year)
             self._hashcode = -1
@@ -378,9 +377,9 @@ class cnlunardate:
 
     def _cmp(self, other):
         assert isinstance(other, cnlunardate)
-        y, m, d, l = self._year, self._month, self._day, self._isLeapMonth
+        y, m, d, is_leap_month = self._year, self._month, self._day, self._isLeapMonth
         y2, m2, d2, l2 = other._year, other._month, other._day, other._isLeapMonth
-        return _cmp((y, m, d, l), (y2, m2, d2, l2))
+        return _cmp((y, m, d, is_leap_month), (y2, m2, d2, l2))
 
     def __eq__(self, other):
         if isinstance(other, cnlunardate):

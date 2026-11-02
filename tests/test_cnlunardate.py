@@ -1,12 +1,10 @@
 """Test cnlunardate."""
 
-import unittest
 import pickle
-
-from cnlunardate import cnlunardate
-from cnlunardate import MIN_YEAR, MAX_YEAR
-
+import unittest
 from datetime import timedelta
+
+from cnlunardate import MAX_YEAR, MIN_YEAR, cnlunardate
 
 pickle_loads = {pickle.loads, pickle._loads}
 pickle_choices = [(pickle, pickle, proto)
@@ -107,7 +105,7 @@ class TestCnlunardate(unittest.TestCase):
                 (2017, [29, 30, 29, 30, 29, 29, 29, 30, 29, 30, 30, 30], True, 6, 30), \
                 (2018, [29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30], False, -1, -1):
             n = self.theclass(year, 1, 1).toordinal()
-            for month, maxday in zip(range(1, len(dim)+1), dim):
+            for month, maxday in zip(range(1, len(dim)+1), dim, strict=False):
                 for day in range(1, maxday+1):
                     d = self.theclass(year, month, day)
                     self.assertEqual(d.toordinal(), n)
@@ -311,10 +309,10 @@ class TestCnlunardate(unittest.TestCase):
 
         # Add/sub ints or floats should be illegal
         for i in 1, 1.0:
-            self.assertRaises(TypeError, lambda: a+i)
-            self.assertRaises(TypeError, lambda: a-i)
-            self.assertRaises(TypeError, lambda: i+a)
-            self.assertRaises(TypeError, lambda: i-a)
+            self.assertRaises(TypeError, lambda i=i: a+i)
+            self.assertRaises(TypeError, lambda i=i: a-i)
+            self.assertRaises(TypeError, lambda i=i: i+a)
+            self.assertRaises(TypeError, lambda i=i: i-a)
 
         # delta - cnlunardate is senseless.
         self.assertRaises(TypeError, lambda: day - a)
@@ -367,7 +365,7 @@ class TestCnlunardate(unittest.TestCase):
 
         # We claim that today() is like fromtimestamp(time.time()), so
         # prove it.
-        for dummy in range(3):
+        for _dummy in range(3):
             today = self.theclass.today()
             ts = time.time()
             todayagain = self.theclass.fromtimestamp(ts)
@@ -554,13 +552,13 @@ class TestCnlunardate(unittest.TestCase):
             self.assertEqual(badarg == t1, False)
             self.assertEqual(badarg != t1, True)
 
-            self.assertRaises(TypeError, lambda: t1 < badarg)
-            self.assertRaises(TypeError, lambda: t1 > badarg)
-            self.assertRaises(TypeError, lambda: t1 >= badarg)
-            self.assertRaises(TypeError, lambda: badarg <= t1)
-            self.assertRaises(TypeError, lambda: badarg < t1)
-            self.assertRaises(TypeError, lambda: badarg > t1)
-            self.assertRaises(TypeError, lambda: badarg >= t1)
+            self.assertRaises(TypeError, lambda badarg=badarg: t1 < badarg)
+            self.assertRaises(TypeError, lambda badarg=badarg: t1 > badarg)
+            self.assertRaises(TypeError, lambda badarg=badarg: t1 >= badarg)
+            self.assertRaises(TypeError, lambda badarg=badarg: badarg <= t1)
+            self.assertRaises(TypeError, lambda badarg=badarg: badarg < t1)
+            self.assertRaises(TypeError, lambda badarg=badarg: badarg > t1)
+            self.assertRaises(TypeError, lambda badarg=badarg: badarg >= t1)
 
     def test_mixed_compare(self):
         our = self.theclass(2000, 4, 5)
@@ -651,7 +649,7 @@ class TestCnlunardate(unittest.TestCase):
         self.assertEqual(dt2.newmeth(-7), dt1.year + dt1.month - 7)
 
     def test_subclass_alternate_constructors(self):
-        from datetime import datetime, date, time
+        from datetime import date, datetime, time
 
         # Test that alternate constructors call the constructor
         class DateSubclass(self.theclass):
