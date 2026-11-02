@@ -1,3 +1,4 @@
-from .cnlunardate import MAX_YEAR, MIN_YEAR, cnlunardate
+from . import cnlunardate
+from .cnlunardate import MAX_YEAR, MIN_YEAR
 
-__all__ = ["MAX_YEAR", "MIN_YEAR", "cnlunardate"]
+__all__ = ["cnlunardate", "MAX_YEAR", "MIN_YEAR"]
