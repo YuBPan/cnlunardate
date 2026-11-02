@@ -61,7 +61,7 @@ class TestCnlunardate(unittest.TestCase):
             s = repr(dt)
             self.assertTrue(s.startswith("cnlunardate."))
             s = s[len("cnlunardate.") :]
-            dt2 = eval(s)
+            dt2 = eval(s, {"cnlunardate": self.theclass})
             self.assertEqual(dt, dt2)
 
             # Verify identity via reconstructing from pieces.
