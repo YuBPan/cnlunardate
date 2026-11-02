@@ -42,7 +42,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "ruff",
-    "mypy",
+#    "mypy",
     "build",
     "twine",
 ]
