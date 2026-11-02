@@ -145,8 +145,10 @@ python -m pytest
 
 ## Lint and format checks
 
+```sh
 python -m ruff check .
 python -m ruff format --check .
+```
 
 ## License
 
